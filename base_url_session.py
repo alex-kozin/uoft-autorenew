@@ -2,12 +2,12 @@
 https://github.com/requests/toolbelt/blob/f5c86c51e0a01fbc8b3b4e1c286fd5c7cb3aacfa/requests_toolbelt/sessions.py
 """
 
-import requests
+from requests import Session
 
 from urllib.parse import urljoin
 
 
-class BaseUrlSession(requests.Session):
+class BaseUrlSession(Session):
     base_url = None
 
     def __init__(self, base_url=None):
