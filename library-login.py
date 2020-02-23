@@ -84,27 +84,31 @@ if __name__ == "__main__":
     dates_data = driver.find_elements(By.XPATH, "//td[starts-with(@class, 'itemlisting') and @align='left']/strong")
     titles_data = driver.find_elements(By.XPATH, "//td[starts-with(@class, 'itemlisting')]/label")
 
+    # Print all due datetimes
     for element in dates_data:
         due_datetime = datetime.strptime(element.text, "%d/%m/%Y,%H:%M")
         print(element.text)
         print(due_datetime)
 
+    # Print all (title , author) pairs
     for element in titles_data:
         order = element.get_attribute("for")[-1]
         title, author = element.text.split("   ")
         print(f"{order[-1]}) {title} by: {author}")
 
-    # Renewing items specified in the config
+    # If any items are scheduled for renewal - renew them
+    if items_to_renew:
 
-    for choice in items_to_renew:
-        checkbox = driver.find_element(By.XPATH, f"//input[@id='RENEW{choice}']")
-        driver.execute_script("arguments[0].checked = true;", checkbox)
+        # Renewing items specified in the config
+        for choice in items_to_renew:
+            checkbox = driver.find_element(By.XPATH, f"//input[@id='RENEW{choice}']")
+            driver.execute_script("arguments[0].checked = true;", checkbox)
 
-    submit_button = driver.find_element(By.XPATH, "//input[@type='submit']")
-    submit_button.click()
+        submit_button = driver.find_element(By.XPATH, "//input[@type='submit']")
+        submit_button.click()
 
-    # TODO: make it less hacky
-    message = driver.find_element(By.XPATH, "//dl/dt/strong").text
-    item = driver.find_element(By.XPATH, "//dl/dd").text
-    print(f"Result: {message}")
-    print(f"Item:\n=============\n{item}\n===============")
+        # TODO: make it less hacky
+        message = driver.find_element(By.XPATH, "//dl/dt/strong").text
+        item = driver.find_element(By.XPATH, "//dl/dd").text
+        print(f"Result: {message}")
+        print(f"Item:\n=============\n{item}\n===============")
