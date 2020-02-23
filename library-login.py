@@ -32,7 +32,7 @@ if __name__ == "__main__":
 
     options = Options()
     # TODO: Uncomment in production
-    # options.add_argument('headless')
+    options.add_argument('headless')
     if chrome_binary:
         options.binary_location = "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe"
     driver = webdriver.Chrome(options=options)
