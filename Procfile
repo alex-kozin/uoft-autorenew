@@ -1,1 +1,1 @@
-worker: python library-login
+worker: python library-login.py
