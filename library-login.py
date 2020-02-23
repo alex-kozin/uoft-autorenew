@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 
 from selenium import webdriver
@@ -19,22 +20,23 @@ if __name__ == "__main__":
 
     base_url = "https://toroprod.library.utoronto.ca"
     options_url = "uhtbin/cgisirsi/x/x/0/1/488/X/BLASTOFF/"
-    config = open("autorenew.config").readlines()
-    argc = 4
-    if len(config) != argc:
-        print(f"Not enough arguments in config file, expected: {argc}")
-        exit(1)
+    # config = open("autorenew.config").readlines()
+    # argc = 4
+    # if len(config) != argc:
+    #     print(f"Not enough arguments in config file, expected: {argc}")
+    #     exit(1)
 
-    login = config[0]
-    pin = config[1]
-    chrome_binary = config[2].rstrip()
-    items_to_renew = config[3].split(" ")
+    login = os.environ['LIBRARY_LOGIN']
+    pin = os.environ['LIBRARY_PIN']
+    # chrome_binary = config[2].rstrip()
+    # items_to_renew = config[3].split(" ")
+    items_to_renew = []
 
     options = Options()
     # TODO: Uncomment in production
     options.add_argument('headless')
-    if chrome_binary:
-        options.binary_location = "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe"
+    # if chrome_binary:
+    #     options.binary_location = "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe"
     driver = webdriver.Chrome(options=options)
 
     driver.get(base_url + "/" + options_url)
