@@ -28,11 +28,16 @@ if __name__ == "__main__":
     login = config[0]
     pin = config[1]
     chrome_binary = config[2].rstrip()
-    items_to_renew = config[3].split(" ")
+
+    if config[3].isspace():
+        print("No renewal options specified. Aborting...")
+        exit(1)
+
+    items_to_renew = {int(choice) for choice in config[3].split(" ")}
 
     options = Options()
     # TODO: Uncomment in production
-    options.add_argument('headless')
+    # options.add_argument('headless')
     if chrome_binary:
         options.binary_location = "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe"
     driver = webdriver.Chrome(options=options)
@@ -78,8 +83,11 @@ if __name__ == "__main__":
     dates_data = driver.find_elements(By.XPATH, "//td[starts-with(@class, 'itemlisting') and @align='left']/strong")
     titles_data = driver.find_elements(By.XPATH, "//td[starts-with(@class, 'itemlisting')]/label")
 
+    due_datetimes = []
+
     for element in dates_data:
         due_datetime = datetime.strptime(element.text, "%d/%m/%Y,%H:%M")
+        due_datetimes.append(due_datetime)
         print(element.text)
         print(due_datetime)
 
@@ -88,17 +96,40 @@ if __name__ == "__main__":
         title, author = element.text.split("   ")
         print(f"{order[-1]}) {title} by: {author}")
 
-    # Renewing items specified in the config
 
-    for choice in items_to_renew:
-        checkbox = driver.find_element(By.XPATH, f"//input[@id='RENEW{choice}']")
-        driver.execute_script("arguments[0].checked = true;", checkbox)
+    # If any items are scheduled for renewal - renew them
+    if items_to_renew:
 
-    submit_button = driver.find_element(By.XPATH, "//input[@type='submit']")
-    submit_button.click()
+        # Renewing items specified in the config
+        for choice in items_to_renew:
+            print(f"The due date for item #{choice} is {due_datetimes[choice-1]}.")
+            time_difference = due_datetimes[choice-1] - datetime.now()
+            # if time_difference.days < 1:
+            checkbox = driver.find_element(By.XPATH, f"//input[@id='RENEW{choice}']")
+            driver.execute_script("arguments[0].checked = true;", checkbox)
 
-    # TODO: make it less hacky
-    message = driver.find_element(By.XPATH, "//dl/dt/strong").text
-    item = driver.find_element(By.XPATH, "//dl/dd").text
-    print(f"Result: {message}")
-    print(f"Item:\n=============\n{item}\n===============")
+            submit_button = driver.find_element(By.XPATH, "//input[@type='submit']")
+            submit_button.click()
+
+            # Get the results of the renewal attempt
+            status_log = driver.find_elements(By.XPATH, "//div[@class='content']/h3")
+            assert 1 <= len(status_log) <= 2
+            for status_entry in status_log:
+                message = status_entry.text
+                print(f"Status: {message}")
+                print(f"Items: {message.split(' ', 1)[0]}\n===============")
+
+            # And get the results specifically for each item
+            # TODO: create a unique identifier based on these strings, check if they are consistent
+            # TODO: when does the api return the # of renewals left? Is it random or not?
+            # TODO: update the due date from the result
+            items_log = driver.find_elements(By.XPATH, "//div[@class='defaultstyle']/dl")
+            assert len(items_log) == len(items_to_renew)
+            for item_entry in items_log:
+                message = item_entry.find_element(By.XPATH, ".//dt").text
+                item_info = item_entry.find_element(By.XPATH, ".//dd").text
+                print(f"Result: {message}")
+                print(f"Item:\n{item_info}\n===============")
+
+            # else:
+            #     print("Waiting until the due date comes. Aborting...")
